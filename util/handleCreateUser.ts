@@ -10,6 +10,7 @@ import {
   getFirestore,
   setDoc,
   serverTimestamp,
+  writeBatch  // Added this
 } from 'firebase/firestore';
 import handleCreateUsernameQueryArray from './handleCreateUsernameQueryArray';
 import app from './firbaseConfig';
@@ -34,39 +35,42 @@ async function submitUser({
   const auth = getAuth();
   const db = getFirestore(app);
 
-  const docRef = doc(db, 'userList', username);
-  const docSnap = await getDoc(docRef);
-  let userId: any;
+  try {
+    // First check if username exists
+    const docRef = doc(db, 'userList', username);
+    const docSnap = await getDoc(docRef);
 
-  if (docSnap.exists()) {
-    setPasswordFormErrors('Username already exists');
-  } else {
+    if (docSnap.exists()) {
+      setPasswordFormErrors('Username already exists');
+      return;
+    }
+
     setLoading(true);
 
-    await createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed in
-        userId = userCredential.user.uid;
-        updateProfile(userCredential.user, {
-          displayName: username,
-        });
-      })
-      .catch((error) => {
-        setPasswordFormErrors(error.message.slice(22, -2));
-      });
+    // Create authentication user
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userId = userCredential.user.uid;
 
-    // add username to global list
-    await setDoc(doc(db, 'userList', username), {});
+    // Update profile
+    await updateProfile(userCredential.user, {
+      displayName: username,
+    });
 
-    // create user post collection
-    await setDoc(doc(db, `${username}Posts`, 'userPosts'), {
+    // Batch write all documents
+    const batch = writeBatch(db);
+
+    // Add username to global list
+    batch.set(doc(db, 'userList', username), {});
+
+    // Create user post collection
+    batch.set(doc(db, `${username}Posts`, 'userPosts'), {
       createdAt: serverTimestamp(),
       postsListArray: [],
     });
 
-    setDoc(doc(db, 'users', username), {
-      // eslint-disable-next-line object-shorthand
-      userId: userId,
+    // Create user document
+    batch.set(doc(db, 'users', username), {
+      userId,
       avatarURL: '',
       chatRoomIds: [],
       messageCount: 0,
@@ -81,14 +85,22 @@ async function submitUser({
       heartNotifications: [],
       newHeart: false,
       usernameQuery: handleCreateUsernameQueryArray(username),
-    })
-      .then(() => {
-        // Profile updated!
-        setIsSubmit(true);
-      })
-      .catch((errorProfile) => {
-        console.log(errorProfile);
-      });
+    });
+
+    // Commit the batch
+    await batch.commit();
+
+    setIsSubmit(true);
+    setLoading(false);
+
+  } catch (error: any) {
+    setLoading(false);
+    if (error.code === 'auth/email-already-in-use') {
+      setPasswordFormErrors('Email already in use');
+    } else {
+      setPasswordFormErrors(error.message.slice(22, -2));
+    }
+    console.error('Error during sign up:', error);
   }
 }
 
