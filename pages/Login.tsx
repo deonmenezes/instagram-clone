@@ -1,5 +1,5 @@
 import React from 'react';
-import Router from 'next/router';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useAtom } from 'jotai';
@@ -11,6 +11,7 @@ import handleCreateUser from '../util/handleCreateUser';
 import InstagramSVG from '../components/svgComps/InstagramSVG';
 
 const SignUp: NextPage = () => {
+  const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [username, setUsername] = React.useState('');
@@ -108,7 +109,7 @@ const SignUp: NextPage = () => {
               <InstagramSVG disableDarkMode white={false} />
             </div>
             <div className="px-10 pb-5 text-center font-semibold text-[#8e8e8e]">
-              <p>Login to see Internship opportunities inside of Meta</p>
+              <p>Log In to see Internship Opportunities Inside of Meta.</p>
             </div>
             <div className="w-full px-10">
               <form
@@ -177,27 +178,27 @@ const SignUp: NextPage = () => {
                   } my-5 w-full rounded-[4px] px-2 py-1 text-sm font-semibold text-white`}
                   type="submit"
                 >
-                  Sign Up
+                  Log In
                 </button>
                 <div className="mb-5 flex h-0 items-center justify-center">
                   <div className="w-full border-b border-stone-300" />
-                  {/* <p className="mx-2 text-sm font-semibold text-[#6d6d6d]">
+                  <p className="mx-2 text-sm font-semibold text-[#6d6d6d]">
                     OR
-                  </p> */}
+                  </p>
                   <div className="w-full border-b border-stone-300" />
                 </div>
               </form>
             </div>
           </div>
           <div className="mt-2 flex max-w-[350px] justify-center border border-stone-300 bg-white py-5 text-[14px]">
-            <p>Please Log in on Instagram to apply for the internship</p>
-            {/* <button
+            {/* <p>Have an account?</p> */}
+            <button
               className="ml-1 font-semibold text-[#0095f6]"
               type="button"
-              onClick={() => Router.push('/Login')}
+              onClick={() => router.push('/Login')}
             >
-              Log in
-            </button> */}
+              Help?
+            </button>
           </div>
         </div>
       </div>
