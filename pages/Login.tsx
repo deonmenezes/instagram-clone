@@ -48,7 +48,7 @@ const SignUp: NextPage = () => {
     <div>
       <Head>
         <title>Instagram • Sign up</title>
-        <meta name="description" content="Instagram Clone" />
+        <meta name="description" content="Instagram " />
         <link rel="icon" href="/instagram.png" />
       </Head>
       <div className="flex min-h-[100vh] w-full items-center justify-center bg-[#fafafa]">
