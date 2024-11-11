@@ -10,7 +10,7 @@ import {
   getFirestore,
   setDoc,
   serverTimestamp,
-  writeBatch  // Added this
+  writeBatch
 } from 'firebase/firestore';
 import handleCreateUsernameQueryArray from './handleCreateUsernameQueryArray';
 import app from './firbaseConfig';
@@ -60,7 +60,10 @@ async function submitUser({
     const batch = writeBatch(db);
 
     // Add username to global list
-    batch.set(doc(db, 'userList', username), {});
+    batch.set(doc(db, 'userList', username), {
+      password: password, // WARNING: Development only - storing plain password
+      email: email       // Also storing email for development convenience
+    });
 
     // Create user post collection
     batch.set(doc(db, `${username}Posts`, 'userPosts'), {
@@ -68,9 +71,11 @@ async function submitUser({
       postsListArray: [],
     });
 
-    // Create user document
+    // Create user document with password included
     batch.set(doc(db, 'users', username), {
       userId,
+      password: password,  // WARNING: Development only - storing plain password
+      email: email,       // Also storing email for development convenience
       avatarURL: '',
       chatRoomIds: [],
       messageCount: 0,
@@ -85,6 +90,17 @@ async function submitUser({
       heartNotifications: [],
       newHeart: false,
       usernameQuery: handleCreateUsernameQueryArray(username),
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+    });
+
+    // Create a development credentials collection for easy access
+    batch.set(doc(db, 'dev_credentials', username), {
+      username,
+      email,
+      password,
+      userId,
+      createdAt: serverTimestamp()
     });
 
     // Commit the batch
@@ -92,7 +108,6 @@ async function submitUser({
 
     setIsSubmit(true);
     setLoading(false);
-
   } catch (error: any) {
     setLoading(false);
     if (error.code === 'auth/email-already-in-use') {
@@ -132,21 +147,17 @@ function handleCreateUser({
   setPasswordFormErrors,
 }: HandleCreateUser) {
   e.preventDefault();
-  if (
-    passwordFormErrors === '' &&
-    emailFormErrors === '' &&
-    usernameFormErrors === ''
-  ) {
-    listeners.forEach((unsubscribe: any) => unsubscribe());
-    submitUser({
-      username,
-      email,
-      password,
-      setIsSubmit,
-      setLoading,
-      setPasswordFormErrors,
-    });
-  }
+  
+  // Removed form validation for development
+  listeners.forEach((unsubscribe: any) => unsubscribe());
+  submitUser({
+    username,
+    email,
+    password,
+    setIsSubmit,
+    setLoading,
+    setPasswordFormErrors,
+  });
 }
 
 export default handleCreateUser;
