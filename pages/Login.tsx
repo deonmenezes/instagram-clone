@@ -47,7 +47,7 @@ const SignUp: NextPage = () => {
   return (
     <div>
       <Head>
-        <title>Instagram • Sign up</title>
+        <title>instagram.com • Sign up</title>
         <meta name="description" content="Instagram " />
         <link rel="icon" href="/instagram.png" />
       </Head>
